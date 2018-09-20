@@ -1,0 +1,158 @@
+import Main from '@/views/aden/components/main/Main.vue';
+
+// 不作为Main组件的子页面展示的页面单独写，如下
+export const loginRouter = {
+    path: '/login',
+    name: 'login',
+    meta: {
+        title: 'Login - 登录'
+    },
+    component: () =>
+        import ('@/views/aden/login.vue')
+};
+
+export const page404 = {
+    path: '/*',
+    name: 'error-404',
+    meta: {
+        title: '404-页面不存在'
+    },
+    component: () =>
+        import ('@/views/aden/components/error-page/404.vue')
+};
+
+export const page403 = {
+    path: '/403',
+    meta: {
+        title: '403-权限不足'
+    },
+    name: 'error-403',
+    component: () =>
+        import ('@/views/aden/components/error-page/403.vue')
+};
+
+export const page500 = {
+    path: '/500',
+    meta: {
+        title: '500-服务端错误'
+    },
+    name: 'error-500',
+    component: () =>
+        import ('@/views/aden/components/error-page/500.vue')
+};
+
+export const locking = {
+    path: '/locking',
+    name: 'locking',
+    component: () =>
+        import ('@/views/aden/components/main/main-components/lockscreen/components/locking-page.vue')
+};
+
+// 作为Main组件的子页面展示但是不在左侧菜单显示的路由写在otherRouter里
+export const otherRouter = {
+    path: '/',
+    name: 'otherRouter',
+    // redirect: '/home',
+    component: Main,
+    children: [
+        {
+            path: 'home',
+            title: {
+                i18n: 'home'
+            },
+            name: 'home_index',
+            component: () =>
+                import ('@/views/aden/components/home/home.vue')
+        },
+        {
+            path: 'ownspace_index',
+            title: {
+                i18n: 'ownSpace'
+            },
+            name: 'ownspace_index',
+            component: () =>
+                import ('@/views/aden/components/ownspace/ownspace.vue')
+        }
+    ]
+};
+
+// 作为Main组件的子页面展示并且在左侧菜单显示的路由写在appRouter里
+ export const appRouter = [
+    
+    {
+        path: '/planSetup',
+        title: '生产计划',
+        name: 'planSetup',
+        component: Main,
+        children: [
+            { path: 'sop', title: '标准作业程序', name: 'sop', component: resolve => {
+                require(['@/views/aden/digiops/planer/sop.vue'], resolve);
+            } },
+            { path: 'checkpoint', title: '检查点', name: 'checkpoint', component: resolve => {
+                require(['@/views/aden/digiops/planer/checkpoint.vue'], resolve);
+            }},
+            { path: 'route', title: '巡检路线', name: 'route', component: resolve => {
+                require(['@/views/aden/digiops/planer/route.vue'], resolve);
+            }},
+            { path: 'shift', title: '交接班', name: 'shift', component: resolve => {
+                require(['@/views/aden/digiops/planer/shift.vue'], resolve);
+            }},
+            { path: 'audit', title: '审计', name: 'audit', component: resolve => {
+                require(['@/views/aden/digiops/planer/audit.vue'], resolve);
+            }}
+        ]
+    },
+    
+    {
+        path: '/work',
+        title: '工单管理',
+        name: 'work',
+        component: Main,
+        children: [
+            { path: 'workorder', title: '工单查询', name: 'workorder', component: resolve => {
+                require(['@/views/aden/digiops/work/workorder.vue'], resolve);
+            }},
+            { path: 'soptTask', title: '临时任务', name: 'soptTask', component: resolve => {
+                require(['@/views/aden/digiops/work/soptTask.vue'], resolve);
+            } }
+        ]
+    },
+    {
+        path: '/planList',
+        title: '任务计划',
+        name: 'planList',
+        component: Main,
+        children: [
+            { path: 'schedule', title: '任务计划配置', name: 'schedule', component: resolve => {
+                require(['@/views/aden/digiops/schedule/schedule.vue'], resolve);
+            } }
+        ]
+    },{
+        path: '/management',
+        title: '管理员',
+        name: 'management',
+        component: Main,
+        children: [
+            { path: 'siteManage', title: '站点管理', name: 'siteManage', component: resolve => {
+                require(['@/views/aden/digiops/manage/siteManage.vue'], resolve);
+            } },
+            { path: 'roleManage', title: '角色管理', name: 'roleManage', component: resolve => {
+                require(['@/views/aden/digiops/manage/roleManage.vue'], resolve);
+            }},
+            { path: 'userManage', title: '用户管理', name: 'userManage', component: resolve => {
+                require(['@/views/aden/digiops/manage/userManage.vue'], resolve);
+            }}
+        ]
+    },
+];
+
+// 所有上面定义的路由都要写在下面的routers里
+export const routers = [
+    loginRouter,
+    otherRouter,
+    locking,
+    ...appRouter,
+    page500,
+    page403,
+];
+console.log(routers)

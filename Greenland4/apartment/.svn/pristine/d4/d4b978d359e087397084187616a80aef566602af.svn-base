@@ -1,0 +1,61 @@
+{
+    "feedbacks": [
+        {
+            "forms": [
+                {
+                    "items": [
+                        {
+                            "select_desc": "OK",
+                            "select_id": "803"
+                        },
+                        {
+                            "select_desc": "NOT OK",
+                            "select_id": "903"
+                        }
+                    ],
+                    "prompt": "1.Overall",
+                    "report_fail": "您还没有勾选上方的选项哦",
+                    "required": true,
+                    "type": "single_select"
+                },
+                {
+                    "items": [
+                        {
+                            "select_desc": "已正常安装",
+                            "select_id": "804"
+                        }
+                    ],
+                    "prompt": "2.Checkbox",
+                    "report_fail": "您还没有勾选上方的选项哦",
+                    "required": true,
+                    "type": "multi_select"
+                },
+                {
+                    "items": [],
+                    "prompt": "3.Add Comments",
+                    "report_fail": "您还没有勾选上方
+
+的选项哦",
+                              "required": true,
+                    "type": "multi_select"
+                },
+                {
+                    "hint": "11111您是怎样发现没有XX权限的？",
+                    "max_len": 140,
+                    "report_fail": "",
+                    "required": false,
+                    "type": "texts"
+                },
+                {
+                    "items": [],
+                    "prompt": "4.Add Photo",
+                    "report_fail": "您还没有勾选上方的选项哦",
+                    "required": true,
+                    "type": "multi_select"
+                }
+            ],
+            "problem_desc": "破解成功后没有权限",
+            "problem_id": 3
+        }
+    ]
+}

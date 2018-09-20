@@ -1,0 +1,616 @@
+<template>
+  <div>
+    <div v-if='showcom' class="wrap">
+      <Row type="flex" justify="space-between" style="margin-bottom:10px">
+        <Col span="4">
+        <Button type="ghost" @click='add'>新建</Button>
+        </Col>
+        <Col>
+        <span>开始时间：</span>
+        <DatePicker type="date" v-model="startDate" placeholder="选择时间"></DatePicker>
+        <span>结束时间：</span>
+        <DatePicker type="date" v-model="endDate" placeholder="选择时间"></DatePicker>
+        <Select v-model="searchType" style="width:150px" @on-change="searchTypeChange">
+          <Option v-for="(item,index) in searchTypeList" :value="item.key" :key="index">{{ item.title }}</Option>
+        </Select>
+        <Input v-if="showInput" placeholder="请输入搜索的内容" v-model="searchValue" style="width: 200px"></Input>
+        <Select v-if="showSelectList" v-model="selectValue" style="width:200px">
+          <Option v-for="item in selectList" :value="item.value" :key="item.value">{{ item.name }}</Option>
+        </Select>
+        <!-- <Select v-if="searchType == 'priority'" v-model="searchPriority" style="width:200px">
+              <Option :value="0">低</Option>
+              <Option :value="1">中</Option>
+              <Option :value="2">高</Option>
+        </Select>
+        <Select v-if="searchType == 'workPlanType'" v-model="searchWorkPlanType" style="width:200px">
+          <Option :value="0">巡检</Option>
+          <Option :value="1">交接班</Option>
+          <Option :value="2">审计</Option>
+        </Select> -->
+        <Button icon="ivu-icon ivu-icon-search" @click="search"></Button>
+        </Col>
+      </Row>
+      <Table @on-row-dblclick="edit" border ref="selection" :columns="columns" :data="data"></Table>
+      <div style="float:right;margin:10px;">
+        <Page :total="total" :page-size="10" @on-change="pageChange"></Page>
+      </div>
+
+    </div>
+    <div v-else class="wrap">
+      <Form ref="formValidate" :model="formValidate" :rules="ruleValidate" label-position="right" :label-width="100">
+        <Row>
+          <Col :xs="24" :lg="12">
+          <FormItem label="站点" prop="siteUuid">
+            <Select v-model="formValidate.siteUuid" @on-change="siteChange">
+              <Option v-for="(item,index) in siteList" :value="item.uuid" :key="index">{{ item.siteName }}</Option>
+            </Select>
+          </FormItem>
+          </Col>
+          <Col :xs="24" :lg="12">
+          <FormItem label="任务名称" prop="workPlanName">
+            <Input v-model="formValidate.workPlanName"></Input>
+          </FormItem>
+          </Col>
+        </Row>
+        <Row>
+          <Col :xs="24" :lg="12">
+          <FormItem label="任务类型" prop="workPlanType">
+            <Select v-model="formValidate.workPlanType" @on-change="siteChange">
+              <Option v-for="(item,index) in workTypeList" :value="item.value" :key="index">{{ item.typeName }}</Option>
+            </Select>
+          </FormItem>
+          </Col>
+
+          <Col v-if="formValidate.workPlanType==0" :xs="24" :lg="12">
+          <FormItem label="路线" prop="orderTypeUuid">
+            <Select v-model="formValidate.orderTypeUuid">
+              <Option v-for="(item,index) in routeList" :value="item.uuid" :key="index">{{ item.lineName }}</Option>
+            </Select>
+          </FormItem>
+          </Col>
+          <Col v-if="formValidate.workPlanType==1" :xs="24" :lg="12">
+          <FormItem label="交接班" prop="orderTypeUuid">
+            <Select v-model="formValidate.orderTypeUuid">
+              <Option v-for="(item,index) in shiftList" :value="item.uuid" :key="index">{{ item.shiftName }}</Option>
+            </Select>
+          </FormItem>
+          </Col>
+          <Col v-if="formValidate.workPlanType==2" :xs="24" :lg="12">
+          <FormItem label="审计" prop="orderTypeUuid">
+            <Select v-model="formValidate.orderTypeUuid">
+              <Option v-for="(item,index) in auditList" :value="item.uuid" :key="index">{{ item.auditName }}</Option>
+            </Select>
+          </FormItem>
+          </Col>
+        </Row>
+        <Row>
+          <Col :xs="24" :lg="12">
+          <FormItem label="发送给" prop="assignUserUuid">
+            <Select v-model="formValidate.assignUserUuid">
+              <Option v-for="(item,index) in receiveList" :value="item.uuid" :key="index">{{ item.userName }}</Option>
+            </Select>
+          </FormItem>
+          </Col>
+          <Col :xs="24" :lg="12">
+          <FormItem label="状态" prop="isEnable">
+            <RadioGroup v-model="formValidate.isEnable">
+              <Radio :label="0">启用</Radio>
+              <Radio :label="1">禁用</Radio>
+            </RadioGroup>
+          </FormItem>
+          </Col>
+        </Row>
+        <Row>
+
+          <Col :xs="24" :lg="12">
+          <FormItem label="优先级" prop="priority">
+            <Select v-model="formValidate.priority">
+              <Option :value="0">低</Option>
+              <Option :value="1">中</Option>
+              <Option :value="2">高</Option>
+            </Select>
+          </FormItem>
+          </Col>
+
+          <Col :xs="12" :lg="6">
+          <FormItem label="开始日期" prop="startTime">
+            <DatePicker type="date" v-model="formValidate.startTime" @on-change="formValidate.startTime=$event" placeholder="选择日期"></DatePicker>
+          </FormItem>
+          </Col>
+          <Col :xs="12" :lg="6">
+          <FormItem label="结束日期" prop="endTime">
+            <DatePicker type="date" v-model="formValidate.endTime" @on-change="formValidate.endTime=$event" placeholder="选择日期"></DatePicker>
+          </FormItem>
+          </Col>
+        </Row>
+        <Row>
+          <Col :xs="24" :lg="12">
+          <FormItem label="频率" prop="rate">
+            <Select v-model="formValidate.rate" @on-change="rateChange">
+              <Option v-for="(item,index) in rateList" :value="item.value" :key="index">{{ item.name }}</Option>
+            </Select>
+          </FormItem>
+          </Col>
+        </Row>
+        <Row>
+          <Col :xs="24" :lg="12">
+          <FormItem v-if="showWeek" label="选择星期" prop="week">
+            <Select v-model="formValidate.week" multiple>
+              <Option v-for="(item,index) in weekList" :value="item.value" :key="index">{{ item.name }}</Option>
+            </Select>
+          </FormItem>
+          </Col>
+        </Row>
+        <Row>
+          <Col span="24">
+          <!-- <FormItem label="选择时间" v-for="(item,index) in formValidate.timeList" :prop="'timeList.' + index+'.value'" :rules="{required: true, message: '时间不能为空', trigger: 'blur',type:'time'}" :key="index"> -->
+          <FormItem label="选择时间" v-for="(item,index) in formValidate.timeList" :key="index">
+            <TimePicker  type="time" v-model="item.timeContent"  placeholder="选择时间"></TimePicker>
+            <Button :disabled="formValidate.rate==1||formValidate.rate == 3" @click="addTime">添加时间</Button>
+            <Button @click="delTime(index)">删除时间</Button>
+          </FormItem>
+          </Col>
+        </Row>
+        <Col :xs="24" :lg="12">
+        <FormItem>
+          <Button type="primary" @click="handleSubmit('formValidate')" style="margin-left: 0px;">保存</Button>
+          <Button type="ghost" @click="handleReset('formValidate')" style="margin-left: 8px">取消</Button>
+        </FormItem>
+        </Col>
+      </Form>
+    </div>
+  </div>
+</template>
+<script>
+import {
+  planAdd,
+  planList,
+  planUpdate,
+  planId,
+  siteSpinner,
+  lineSpinner,
+  shiftSpinner,
+  auditSpinner,
+  userSpinner,
+  inputExcel
+} from "../../api/index.js";
+export default {
+  data() {
+    //   const emptyTime=function(rule,value,callback){
+
+    //     this.formValidate.timeList.forEach(item=>{
+    //       if(item.time == ''){
+    //       callback(new Error('时间为必选项'))
+    //     }else{
+    //       callback()
+    //     }
+    //     })
+
+    // }
+    return {
+      searchIsEnable: 0,
+      searchPriority: 0,
+      searchWorkPlanType: 0,
+      selectList:[],
+      selectValue:4,
+      showSelectList:false,
+      total:0,
+      startDate: "",
+      endDate: "",
+      operationstatus: "add",
+      showInput:true,
+      searchValue: "",
+      searchType: "workPlanNum",
+      searchTypeList: [
+        {
+          title: "计划配置编号",
+          key: "workPlanNum"
+        },
+        {
+          title: "计划配置名称",
+          key: "workPlanName"
+        },
+        {
+          title: "优先级",
+          key: "priority"
+        },
+        {
+          title: "站点",
+          key: "siteName"
+        },
+        {
+          title: "类型",
+          key: "workPlanType"
+        },
+        {
+          title: "执行人",
+          key: "userName"
+        },
+        {
+          title: "状态",
+          key: "isEnable"
+        }
+      ],
+      timeIndex: 1,
+      showRoute: false,
+      showWeek: false,
+      showcom: true,
+      workTypeList: [
+        { typeName: "巡检", value: 0 },
+        { typeName: "交接班", value: 1 },
+        { typeName: "审计", value: 2 }
+      ],
+      siteList: [],
+      routeList: [],
+      shiftList: [],
+      auditList: [],
+      receiveList: [],
+      rateList: [
+        { name: "一日一次", value: 1 },
+        { name: "一日多次", value: 2 },
+        { name: "多日一次", value: 3 },
+        { name: "多日多次", value: 4 }
+      ],
+      weekList: [
+        {
+          name: "星期一",
+          value: '1'
+        },
+        {
+          name: "星期二",
+          value: '2'
+        },
+        {
+          name: "星期三",
+          value: '3'
+        },
+        {
+          name: "星期四",
+          value: '4'
+        },
+        {
+          name: "星期五",
+          value: '5'
+        },
+        {
+          name: "星期六",
+          value: '6'
+        },
+        {
+          name: "星期日",
+          value: '7'
+        }
+      ],
+      formValidate: {
+        isEnable: 0,
+        siteUuid: "",
+        workPlanName: "",
+        workPlanType: 0,
+        priority: 0,
+        startTime: "",
+        endTime: "",
+        rate: 1,
+        week: [],
+        orderTypeUuid: "",
+        assignUserUuid: "",
+        timeList: [{ timeContent: "00:01:00" }]
+      },
+      ruleValidate: {
+        workPlanNum: [
+          {
+            required: true,
+            message: "工单编码为必填项",
+            trigger: "change"
+          }
+        ],
+        workPlanName: [
+          {
+            required: true,
+            message: "工单名称为必填项",
+            trigger: "change"
+          }
+        ],
+        startTime: [
+          {
+            required: true,
+            message: "开始日期为必填项",
+            trigger: "change",
+            type: "date"
+          }
+        ],
+        endTime: [
+          {
+            required: true,
+            message: "结束日期为必填项",
+            trigger: "change",
+            type: "date"
+          }
+        ],
+        rate: [
+          {
+            required: true,
+            message: "发送频率为必填项",
+            trigger: "change",
+            type: "number"
+          }
+        ],
+        workPlanType: [
+          {
+            required: true,
+            message: "工单类型为必填项",
+            trigger: "change",
+            type: "number"
+          }
+        ],
+        assignUserUuid: [
+          {
+            required: true,
+            message: "接收人为必填项",
+            trigger: "change"
+          }
+        ],
+        // week: [
+        //   {
+        //     required: true,
+        //     message: "星期为必填项",
+        //     trigger: "change",
+        //     type: "array"
+        //   }
+        // ],
+        siteUuid: [
+          {
+            required: true,
+            message: "站点为必填项",
+            trigger: "change"
+          }
+        ],
+        route: [
+          {
+            required: true,
+            message: "路线为必填项",
+            trigger: "change"
+          }
+        ]
+      },
+      columns: [
+        {
+          type: "selection",
+          width: 60,
+          align: "center"
+        },
+        {
+          title: "计划配置编号",
+          key: "workPlanNum"
+        },
+        {
+          title: "计划配置名称",
+          key: "workPlanName"
+        },
+        {
+          title: "优先级",
+          key: "priority"
+        },
+        {
+          title: "站点",
+          key: "siteName"
+        },
+        {
+          title: "类型",
+          key: "workPlanType"
+        },
+        {
+          title: "执行人",
+          key: "userName"
+        },
+        {
+          title: "工单生成时间",
+          key: "createTime"
+        },
+        {
+          title: "状态",
+          key: "isEnable"
+        }
+      ],
+      data: []
+    };
+  },
+  created() {
+    this.getformatdata({startPage:1,pageSize:10})
+    siteSpinner().then(res => {
+      this.siteList = res.data.data;
+    });
+  },
+  computed: {},
+  methods: {
+    search() {
+      let searchData = {
+        pageSize: 10,
+        startPage: 1,
+        startDate: this.startDate,
+        endDate: this.endDate
+      };
+      if (this.searchType == "isEnable") {
+        searchData.isEnable = this.selectValue;
+      } else if(this.searchType == "priority") {
+        searchData.priority = this.selectValue;
+      }else if(this.searchType == "workPlanType") {
+        searchData.workPlanType = this.selectValue;
+      }else{
+        searchData[this.searchType] = this.searchValue;
+      }
+      if (this.endDate != "" && this.startDate != "") {
+        if (this.endDate >= this.startDate) {
+          this.getformatdata(searchData);
+        } else {
+          this.$Message.info("结束时间应大于开始时间");
+          this.endDate = "";
+        }
+      } else {
+        this.getformatdata(searchData);
+      }
+    },
+    searchTypeChange(value){
+      
+        this.selectValue = 0
+      if(value == "priority"){
+        this.selectList = [{value:0,name:"低"},{value:1,name:"中"},{value:2,name:"高"}]
+        this.showInput = false
+        this.showSelectList = true
+      }else if(value == "isEnable"){
+        this.selectList = [{value:0,name:"启用"},{value:1,name:"禁用"}]
+        this.showInput = false
+        this.showSelectList = true
+      }else if(value == "workPlanType"){
+        this.selectList = [{value:0,name:"巡检"},{value:1,name:"交接班"},{value:2,name:"审计"}]
+        this.showInput = false
+        this.showSelectList = true
+      }else{
+        this.showInput = true
+        this.showSelectList = false
+      }
+    },
+    siteChange(value) {
+      userSpinner({siteUuids:this.formValidate.siteUuid}).then(res=>{
+        this.receiveList = res.data.data
+      })
+      if(this.formValidate.siteUuid != ""){
+        if(this.formValidate.workPlanType==0){
+          lineSpinner(this.formValidate.siteUuid).then(res=>{
+            this.routeList = res.data.data
+          })
+        }else if(this.formValidate.workPlanType==1){
+          shiftSpinner(this.formValidate.siteUuid).then(res=>{
+            this.shiftList = res.data.data
+          })
+        }else{
+          auditSpinner(this.formValidate.siteUuid).then(res=>{
+            this.auditList = res.data.data
+          })
+        }
+      }
+    },
+    add() {
+      this.formValidate = {
+            isEnable: 0,
+            siteUuid: "",
+            workPlanName: "",
+            workPlanType: 0,
+            priority: 0,
+            startTime: "",
+            endTime: "",
+            rate: 1,
+            week: [],
+            orderTypeUuid: "",
+            assignUserUuid: "",
+            timeList: [{ timeContent: "00:01:00" }]
+          };
+      this.showcom = false;
+      this.showWeek = false
+      this.operationstatus = "add"
+    },
+    edit(row,index) {
+      planId(row.uuid).then(res => {
+        let planDetail = res.data.data
+        planDetail.week = planDetail.week == ""?[]:planDetail.week.indexOf(",")==-1?planDetail.week.split():planDetail.week.split(',')
+        this.formValidate.timeList = planDetail.times.map(item=>{
+          return new Date(item.timeContent)
+        })
+        this.formValidate = {
+          isEnable: planDetail.isEnable,
+          siteUuid: planDetail.siteUuid,
+          workPlanName: planDetail.workPlanName,
+          workPlanType: planDetail.workPlanType,
+          priority: planDetail.priority,
+          startTime: new Date(planDetail.startTime),
+          endTime: new Date(planDetail.endTime),
+          rate: planDetail.rate,
+          week:planDetail.week,
+          orderTypeUuid: planDetail.orderTypeUuid,
+          assignUserUuid: planDetail.assignUserUuid,
+          //timeList: planDetail.times,
+          uuid:planDetail.uuid
+        };
+      });
+      this.showcom = false;
+      this.operationstatus = "edit"
+    },
+    addTime() {
+      this.timeIndex++;
+      this.formValidate.timeList.push({ timeContent: "00:01:00" });
+      console.log(this.formValidate);
+    },
+    delTime(index) {
+      if(this.formValidate.timeList.length>1){
+
+        this.formValidate.timeList.splice(index, 1);
+      }
+    },
+    handleSubmit(name) {
+      this.$refs[name].validate(valid => {
+        if (valid) {
+          if(this.formValidate.startTime > this.formValidate.endTime){
+            this.formValidate.endTime = ''
+            this.$Message.info("结束时间应大于开始时间");
+          }else{
+          this.$Message.success("Success!");
+          console.log(this.formValidate.timeList);
+            this.formValidate.timeList.forEach(item=>{
+              item.value = new Date(item.timeContent).getHours() +":"+new Date(item.timeContent).getMinutes()+":00"
+            })
+            console.log(this.formValidate.week)
+            this.formValidate.week = this.formValidate.week.join();
+            console.log(this.formValidate.week)
+            this.formValidate.timeList = JSON.stringify(this.formValidate.timeList)
+          if (this.operationstatus == "add") {
+            planAdd(this.formValidate).then(res => {
+              this.getformatdata({startPage:1,pageSize:10})
+            });
+          } else {
+            planUpdate(this.formValidate).then(res => {
+              this.getformatdata({startPage:1,pageSize:10})
+            });
+          }
+          this.showcom = true;
+        }
+        } else {
+          this.$Message.error("Fail!");
+        }
+      });
+    },
+    handleReset(name) {
+      this.showcom = true;
+      this.$refs[name].resetFields();
+    },
+    rateChange(value) {
+      if(value == 3 || value == 4){
+        this.showWeek = true
+      }else{
+        this.showWeek = false
+        this.formValidate.week = []
+      }
+      if (value == 1 || value == 3) {
+        this.formValidate.timeList = [{ timeContent: "00:01:00" }];
+      }
+    },
+    pageChange(startPage){
+      this.getformatdata({startPage:startPage,pageSize:10})
+    },
+     getformatdata(data) {
+       planList(data).then(res => {
+         this.data = res.data.data.records;
+         this.total = res.data.data.total;
+        this.data.forEach(item => {
+          item.priority = item.priority == 0 ? "低" : item.priority == 1 ? "中": "高"
+          item.workPlanType = item.workPlanType == 0 ? "路线" : item.workPlanType == 1 ? "交接班": "审计"
+          item.createTime = this.$util.formatTime(item.createTime);
+          item.isEnable = item.isEnable == 0 ? "启用" : "禁用";
+        });
+       });
+    },
+  },
+  
+};
+</script>
+<style scoped>
+</style>
+

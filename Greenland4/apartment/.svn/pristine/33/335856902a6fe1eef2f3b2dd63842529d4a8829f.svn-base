@@ -1,0 +1,454 @@
+<template>
+  <div>
+    <div v-if='showcom' class="wrap">
+      <Row type="flex" justify="space-between" style="margin-bottom:10px">
+        <Col span="4">
+        <Button type="ghost" :disabled="power" @click='add'>新建</Button>
+        </Col>
+        <Col>
+        <span>开始时间：</span>
+        <DatePicker type="date" v-model="startDate" placeholder="选择时间"></DatePicker>
+        <span>结束时间：</span>
+        <DatePicker type="date" v-model="endDate" placeholder="选择时间"></DatePicker>
+        <Select v-model="searchType" style="width:150px">
+          <Option v-for="item in searchTypeList" :value="item.key" :key="item.key">{{ item.title }}</Option>
+        </Select>
+        <Input v-if="searchType != 'isEnable'" v-model="searchValue" placeholder="请输入搜索的内容" style="width: 200px"></Input>
+        <Select v-if="searchType == 'isEnable'" v-model="searchIsEnable" style="width:200px">
+          <Option :value="0">启用</Option>
+          <Option :value="1">禁用</Option>
+        </Select>
+        <Button icon="ivu-icon ivu-icon-search" @click="search"></Button>
+        </Col>
+      </Row>
+      <Table class="table" @on-row-dblclick="edit" border ref="selection" :columns="columns" :data="data"></Table>
+      <div style="float:right;margin:10px;">
+        <Page :total="50"></Page>
+      </div>
+
+    </div>
+    <div v-else class="wrap">
+      <Form ref="formValidate" :model="formValidate" :rules="ruleValidate" label-position="right" :label-width="100">
+        <Row>
+          <Col :xs="24" :lg="12">
+          <FormItem label="站点" prop="siteUuid">
+            <Select v-model="formValidate.siteUuid">
+              <Option v-for="(item,index) in siteList" :value="item.uuid" :key="index">{{ item.siteName }}</Option>
+            </Select>
+          </FormItem>
+          </Col>
+          <Col :xs="24" :lg="12">
+          <FormItem label="任务名称" prop="name">
+            <Input v-model="formValidate.name"></Input>
+          </FormItem>
+          </Col>
+        </Row>
+        <Row>
+          <Col :xs="24" :lg="12">
+          <FormItem label="任务类型" prop="type">
+            <Select v-model="formValidate.type">
+              <Option v-for="(item,index) in workTypeList" :value="item.typeName" :key="index">{{ item.typeName }}</Option>
+            </Select>
+          </FormItem>
+          </Col>
+
+          <Col :xs="24" :lg="12">
+          <FormItem v-if="showRoute" label="路线" prop="route">
+            <Select v-model="formValidate.route">
+              <Option v-for="(item,index) in routeList" :value="item" :key="index">{{ item }}</Option>
+            </Select>
+          </FormItem>
+          </Col>
+        </Row>
+        <Row>
+          <Col :xs="24" :lg="12">
+          <FormItem label="发送给" prop="receive">
+            <Select v-model="formValidate.receive">
+              <Option v-for="(item,index) in receiveList" :value="item" :key="index">{{ item }}</Option>
+            </Select>
+          </FormItem>
+          </Col>
+          <Col :xs="24" :lg="12">
+          <FormItem label="状态" prop="isEnable">
+            <RadioGroup v-model="formValidate.isEnable">
+              <Radio :label="0">启用</Radio>
+              <Radio :label="1">禁用</Radio>
+            </RadioGroup>
+          </FormItem>
+          </Col>
+        </Row>
+        <Row>
+
+          <Col :xs="24" :lg="12">
+          <FormItem label="优先级" prop="level">
+            <Select v-model="formValidate.level">
+              <Option value="2">低</Option>
+              <Option value="1">中</Option>
+              <Option value="0">高</Option>
+            </Select>
+          </FormItem>
+          </Col>
+
+          <Col :xs="12" :lg="6">
+          <FormItem label="开始日期" prop="sdate">
+            <DatePicker type="date" v-model="formValidate.sdate" @on-change="formValidate.sdate=$event" placeholder="选择日期"></DatePicker>
+          </FormItem>
+          </Col>
+          <Col :xs="12" :lg="6">
+          <FormItem label="结束日期" prop="edate">
+            <DatePicker type="date" v-model="formValidate.edate" @on-change="formValidate.edate=$event" placeholder="选择时间"></DatePicker>
+          </FormItem>
+          </Col>
+        </Row>
+        <Row>
+          <Col :xs="24" :lg="12">
+          <FormItem label="频率" prop="rate">
+            <Select v-model="formValidate.rate">
+              <Option v-for="(item,index) in rateList" :value="item.value" :key="index">{{ item.name }}</Option>
+            </Select>
+          </FormItem>
+          </Col>
+        </Row>
+        <Row>
+
+          <Col :xs="24" :lg="12">
+          <FormItem v-if="showWeek" label="选择星期" prop="week">
+            <Select v-model="formValidate.week" multiple>
+              <Option v-for="(item,index) in weekList" :value="item" :key="index">{{ item }}</Option>
+            </Select>
+          </FormItem>
+          </Col>
+        </Row>
+        <Row>
+          <Col span="24">
+          <FormItem label="选择时间" v-for="(item,index) in formValidate.timeList" :prop="'timeList.' + index+'.value'" :rules="{required: true, message: '时间不能为空', trigger: 'blur',type:'time'}" :key="index">
+            <TimePicker type="time" v-model="item.value" @on-change="item.value=$event" placeholder="Select time"></TimePicker>
+            <Button @click="addTime">添加时间</Button>
+            <Button @click="delTime(index)">删除时间</Button>
+          </FormItem>
+          </Col>
+        </Row>
+        <Col :xs="24" :lg="12">
+        <FormItem>
+          <Button type="primary" :disabled="power" @click="handleSubmit('formValidate')" class="save " style="margin-left: 0px;">保存</Button>
+          <Button type="ghost" @click="handleReset('formValidate')" class="button " style="margin-left: 8px">取消</Button>
+        </FormItem>
+        </Col>
+      </Form>
+    </div>
+  </div>
+</template>
+<script>
+import {
+  sopAdd,
+  sopCode,
+  sopList,
+  sopUpdate,
+  sopId,
+  siteSpinner,
+  inputExcel
+} from "../../api/index.js";
+export default {
+  data() {
+    //   const emptyTime=function(rule,value,callback){
+
+    //     this.formValidate.timeList.forEach(item=>{
+    //       if(item.time == ''){
+    //       callback(new Error('时间为必选项'))
+    //     }else{
+    //       callback()
+    //     }
+    //     })
+
+    // }
+    return {
+      searchIsEnable: 0,
+      startDate: "",
+      endDate: "",
+      searchValue: "",
+      searchType: "code",
+      searchTypeList: [
+        {
+          title: "计划配置编号",
+          key: "code"
+        },
+        {
+          title: "计划配置名称",
+          key: "name"
+        },
+        {
+          title: "优先级",
+          key: "priority"
+        },
+        {
+          title: "站点",
+          key: "site"
+        },
+        {
+          title: "类型",
+          key: "type"
+        },
+        {
+          title: "发送给",
+          key: "receive"
+        },
+        {
+          title: "工单生成时间",
+          key: "creatime"
+        },
+        {
+          title: "状态",
+          key: "status"
+        }
+      ],
+      timeIndex: 1,
+      showRoute: false,
+      showWeek: false,
+      showcom: true,
+      workTypeList: [
+        { typeName: "巡检", value: 1 },
+        { typeName: "交接班", value: 2 },
+        { typeName: "审计", value: 3 },
+        { typeName: "临时任务", value: 4 }
+      ],
+      siteList: [],
+      routeList: ["route1", "route2"],
+      receiveList: ["张三", "李希"],
+      rateList: [
+        { name: "一日一次", value: 1 },
+        { name: "一日多次", value: 2 },
+        { name: "多日一次", value: 3 },
+        { name: "多日多次", value: 4 }
+      ],
+      weekList: [
+        "星期一",
+        "星期二",
+        "星期三",
+        "星期四",
+        "星期五",
+        "星期六",
+        "星期日"
+      ],
+      formValidate: {
+        isEnable: 0,
+        timeList: [{ value: "00:01:00" }]
+      },
+      ruleValidate: {
+        code: [
+          {
+            required: true,
+            message: "工单编码为必填项",
+            trigger: "change"
+          }
+        ],
+        name: [
+          {
+            required: true,
+            message: "工单名称为必填项",
+            trigger: "change"
+          }
+        ],
+        sdate: [
+          {
+            required: true,
+            message: "开始日期为必填项",
+            trigger: "change",
+            type: "date"
+          }
+        ],
+        edate: [
+          {
+            required: true,
+            message: "结束日期为必填项",
+            trigger: "change",
+            type: "date"
+          }
+        ],
+        rate: [
+          {
+            required: true,
+            message: "发送频率为必填项",
+            trigger: "change",
+            type: "number"
+          }
+        ],
+        type: [
+          {
+            required: true,
+            message: "工单类型为必填项",
+            trigger: "change"
+          }
+        ],
+        receive: [
+          {
+            required: true,
+            message: "接收人为必填项",
+            trigger: "change"
+          }
+        ],
+        week: [
+          {
+            required: true,
+            message: "星期为必填项",
+            trigger: "change"
+          }
+        ],
+        siteUuid: [
+          {
+            required: true,
+            message: "站点为必填项",
+            trigger: "change"
+          }
+        ],
+        route: [
+          {
+            required: true,
+            message: "路线为必填项",
+            trigger: "change"
+          }
+        ]
+      },
+      columns: [
+        {
+          type: "selection",
+          width: 60,
+          align: "center"
+        },
+        {
+          title: "计划配置编号",
+          key: "code"
+        },
+        {
+          title: "计划配置名称",
+          key: "name"
+        },
+        {
+          title: "优先级",
+          key: "priority"
+        },
+        {
+          title: "站点",
+          key: "site"
+        },
+        {
+          title: "类型",
+          key: "type"
+        },
+        {
+          title: "发送给",
+          key: "receive"
+        },
+        {
+          title: "工单生成时间",
+          key: "creatime"
+        },
+        {
+          title: "状态",
+          key: "status"
+        }
+      ],
+      data: [
+        {
+          code: "BEJTSL2220",
+          name: "BEJTLS01",
+          priority: "高",
+          creatime: "BEJTLS01",
+          status: "sop2220111",
+          site: "上海站",
+          type: "审计",
+          receive: "张三"
+        },
+        {
+          code: "BEJTSL2220",
+          name: "BEJTLS01",
+          priority: "高",
+          creatime: "BEJTLS01",
+          status: "sop2220111",
+          site: "上海站",
+          type: "审计",
+          receive: "张三"
+        }
+      ]
+    };
+  },
+  created() {
+    siteSpinner().then(res => {
+      this.siteList = res.data.data;
+    });
+  },
+  computed: {
+  },
+  methods: {
+    search() {
+      let searchData = {
+        pageSize: 10,
+        startPage: 1,
+        startDate: this.startDate,
+        endDate: this.endDate
+      };
+      if (this.searchType == "isEnable") {
+        searchData.isEnable = this.searchIsEnable;
+      } else {
+        searchData[this.searchType] = this.searchValue;
+      }
+      if (this.endDate != "" && this.startDate != "") {
+        if (this.endDate >= this.startDate) {
+          this.getformatdata(searchData);
+        } else {
+          this.$Message.info("结束时间应大于开始时间");
+          this.endDate = "";
+        }
+      } else {
+        this.getformatdata(searchData);
+      }
+    },
+    add() {
+      console.log(3);
+      this.showcom = false;
+    },
+    edit() {
+      this.showcom = false;
+    },
+    addTime() {
+      this.timeIndex++;
+      this.formValidate.timeList.push({ value: "00:01:00" });
+      console.log(this.formValidate);
+    },
+    delTime(index) {
+      this.formValidate.timeList.splice(index, 1);
+    },
+    handleSubmit(name) {
+      this.$refs[name].validate(valid => {
+        if (valid) {
+          this.$Message.success("Success!");
+          console.log(this.formValidate);
+          this.showcom = true;
+        } else {
+          this.$Message.error("Fail!");
+        }
+      });
+    },
+    handleReset(name) {
+      this.showcom = true;
+      this.$refs[name].resetFields();
+    }
+  },
+  watch: {
+    formValidate: {
+      handler: function(newvalue, oldvalue) {
+        console.log(newvalue + "--" + oldvalue);
+        this.showRoute = this.formValidate.type == "巡检" ? true : false;
+        this.showWeek =
+          this.formValidate.rate == 3 || this.formValidate.rate == 4
+            ? true
+            : false;
+        console.log(this.formValidate);
+      },
+      deep: true
+    }
+  }
+};
+</script>
+<style scoped>
+</style>
+

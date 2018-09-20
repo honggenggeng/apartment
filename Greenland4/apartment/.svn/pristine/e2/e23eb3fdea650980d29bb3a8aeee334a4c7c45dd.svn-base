@@ -1,0 +1,290 @@
+<template>
+  <div class="operation" id="bb">
+    <div v-if="isshow" class="wrap">
+      <Row  type="flex" justify="space-between" style="padding-bottom:10px;" >
+        <Col>
+        <Button type="ghost" @click='addnew'>新建</Button>
+        </Col>
+        <Col>
+        <Input icon="search" placeholder="请输入搜索的内容"></Input>
+        </Col>
+      </Row>
+      <Table border @on-row-dblclick="editrole" :columns="columns4" :data="data1"></Table>
+     
+    </div>
+    <Form class="wrap" v-else ref="formValidate" :model="formValidate" :rules="ruleValidate" label-position="right" :label-width="100">
+      <Row>
+        <Col :xs="24" :lg="12">
+        <FormItem label="角色名称" prop="roleName">
+          <Input v-model="formValidate.roleName"></Input>
+        </FormItem>
+        </Col>
+        <Col :xs="24" :lg="12">
+        <FormItem label="描述" prop="roleDetail">
+          <Input v-model="formValidate.roleDetail"></Input>
+        </FormItem>
+        </Col>
+      </Row>
+      <Row>
+        <Col :xs="24" :lg="12">
+        <FormItem label="服务类型" prop="serviceType">
+          <Select v-model="formValidate.serviceType">
+            <Option v-for="item in serviceTypeList" :value="item.value" :key="item.value">{{ item.label }}</Option>
+          </Select>
+        </FormItem>
+        </Col>
+        <Col :xs="24" :lg="12" style="padding-left:40px">
+        <Upload name="logo" :on-success="handleSuccess" :action='$util.ajaxUrl+"/digiops/upload/picture"'>
+          <Button type="ghost" icon="ios-cloud-upload-outline">上传角色头像</Button>
+          <!-- <p v-if="sitelogotap">必须上传角色头像</p> -->
+        </Upload>
+        <img :src="personalImage" alt="">
+        </Col>
+      </Row>
+      <Row>
+        <FormItem label="状态" prop="isEnable">
+          <RadioGroup v-model="formValidate.isEnable">
+            <Radio :label="0">启用</Radio>
+            <Radio :label="1">禁用</Radio>
+          </RadioGroup>
+        </FormItem>
+      </Row>
+      <Row >
+        <Col :xs="24" :lg="12">
+        <FormItem :label="item.menuName"  v-for="(item,index) in menulistPC" :key="index">
+          <RadioGroup  v-model="formValidate[item.uuid]">
+            <Radio :label="1">禁用</Radio>
+            <Radio :label="2">查看</Radio>
+            <Radio :label="3">编辑</Radio>
+          </RadioGroup>
+        </FormItem>
+        </Col>
+        <Col :xs="24" :lg="12">
+        <Checkbox v-model="formValidate.isApp">APP权限</Checkbox>
+        <FormItem v-if="formValidate.isApp" :label="item.menuName" v-for="(item,index) in menulistAPP" :key="index">
+          <RadioGroup size="large" v-model="formValidate[item.uuid]">
+            <Radio :label="1">禁用</Radio>
+            <Radio :label="3">启用</Radio>
+          </RadioGroup>
+        </FormItem>
+        </Col>
+      </Row>
+
+      <Col :xs="24" :lg="12">
+      <FormItem>
+        <Button type="primary" @click="handleSubmit('formValidate')" class="save " style="margin-left: 0px;">保存</Button>
+        <Button type="ghost" @click="handleReset('formValidate')" class="button " style="margin-left: 8px">取消</Button>
+      </FormItem>
+      </Col>
+    </Form>
+  </div>
+</template>
+
+<script>
+import {
+  rolemenuList,
+  insertRole,
+  queryMenuListget,
+  roleadd,
+  rolelist,
+  roleupdate,
+  roleId
+} from "../../api/index";
+export default {
+  data() {
+    return {
+      isshow: true,
+      serviceTypeList: [
+        {
+          label: "保安",
+          value: 1
+        },
+        {
+          label: "保洁",
+          value: 2
+        },
+        {
+          label: "配餐",
+          value: 3
+        }
+      ],
+      formdata: {},
+      personalImage:"",
+      operationstatus: "add",
+      menulistPC: [],
+      menulistAPP: [],
+      formValidate: {
+        roleName: "",
+        roleDetail: "",
+        isApp: true,
+        isEnable: 0,
+        serviceType: 1
+      },
+      formValidateTest:{},
+      ruleValidate: {
+        roleName: [
+          {
+            required: true,
+            message: "用户ID为必填项",
+            trigger: "blur"
+          }
+        ],
+        roleDetail: [
+          {
+            required: true,
+            message: "描述为必填项",
+            trigger: "blur"
+          }
+        ]
+      },
+      columns4: [
+        {
+          type: "selection",
+          width: 60,
+          align: "center"
+        },
+        {
+          title: "角色名称",
+          key: "roleName"
+        },
+        {
+          title: "服务类型",
+          key: "serviceType"
+        },
+        {
+          title: "描述",
+          key: "roleDetail"
+        },
+        {
+          title: "状态",
+          key: "isEnable"
+        }
+      ],
+      data1: []
+    };
+  },
+  created() {
+    this.getdata();
+    rolemenuList().then(res => {
+        console.log(res.data);
+        res.data.data.forEach(item => {
+          if(item.isApp == 1){
+            this.menulistPC.push(item)
+          }else{
+            this.menulistAPP.push(item)
+          }
+        });
+        res.data.data.forEach(item=>{
+          this.formValidateTest[item['uuid']] = 3;
+        })
+        this.formValidate = Object.assign({},this.formValidate,this.formValidateTest)
+
+        console.log(this.menulistPC);
+        console.log(this.formValidate);
+      });
+  },
+  methods: {
+    editrole(row, index) {
+      this.isshow = false;
+      console.log(row.uuid);
+      roleId(row.uuid).then(res => {
+        console.log(res.data);
+        let roleDetail = res.data.data
+        this.menulistPC = roleDetail.menuRoleDTOs.slice(0, roleDetail.menuRoleDTOs.length - 5);
+        this.menulistAPP = roleDetail.menuRoleDTOs.slice(roleDetail.menuRoleDTOs.length - 5);
+
+        this.menulistPC.forEach((item, index) => {
+          this.formValidate[item["uuid"]] = item["powerType"];
+        });
+        this.menulistAPP.forEach((item, index) => {
+          this.formValidate[item["uuid"]] = item["powerType"];
+        });
+
+        this.formValidate.roleName = roleDetail.roleName;
+        this.formValidate.roleDetail = roleDetail.roleDetail;
+        this.formValidate.serviceType = roleDetail.serviceType;
+        this.formValidate.isEnable = roleDetail.isEnable;
+        this.formValidate.uuid = roleDetail.uuid;
+        this.formValidate.personalImage = roleDetail.personalImage;
+        this.formValidate.isApp = roleDetail.isApp == 0 ? true : false;
+        console.log(this.formValidate);
+      this.personalImage = this.$util.ajaxUrl + "/digiops" + roleDetail.personalImage
+      });
+      this.operationstatus = "edit";
+    },
+    handleSubmit(name) {
+      this.$refs[name].validate(valid => {
+        if (valid) {
+          this.$Message.success("Success!");
+          var linshishuzu = [];
+          this.isshow = true;
+          console.log(this.formValidate);
+          for (var k in this.formValidate) {
+            if (k.length != 32) {
+              console.log(k);
+              this.formdata[k] = this.formValidate[k];
+              delete this.formValidate[k];
+            }
+          }
+          console.log(this.formValidate);
+          console.log(this.formdata);
+          this.formdata["roleMenuList"] = JSON.stringify(this.formValidate)
+            .replace("{", "")
+            .replace(/:/g, "@")
+            .replace("}", "")
+            .replace(/"/g, "");
+          this.formdata.isApp = this.formdata.isApp == true ? 0 : 1;
+          console.log(this.formdata);
+          if (this.operationstatus == "add") {
+            console.log(this.formdata);
+            roleadd(this.formdata)
+              .then(res => {
+                this.getdata();
+              })
+              .catch(error => {
+                console.log(error);
+              });
+          } else {
+            roleupdate(this.formdata).then(res => {
+              this.getdata();
+            });
+          }
+        } else {
+          this.$Message.error("Fail!");
+        }
+      });
+      this.formValidate.roleName = "";
+      this.formValidate.roleDetail = "";
+      this.formValidate.isEnable = 0;
+    },
+    handleReset(name) {
+      this.isshow = true;
+      this.formValidate.roleName = "";
+      this.formValidate.roleDetail = "";
+      this.formValidate.isEnable = 0;
+    },
+     handleSuccess(res, file) {
+      console.log(res);
+      this.formValidate.personalImage = res.data
+      this.personalImage = this.$util.ajaxUrl + "/digiops" + res.data
+      //this.sitelogotap = false  
+    },
+    addnew() {
+      this.isshow = false;
+      this.operationstatus = "add";
+      
+    },
+    getdata() {
+      rolelist().then(res => {
+        this.data1 = res.data.data;
+        this.data1.forEach(item => {
+          item.isEnable = item.isEnable == 0 ? "启用" : "禁用";
+          item.serviceType = item.serviceType == 1 ? "保安" : item.serviceType == 2 ? "保洁" : "配餐"
+        });
+      });
+    }
+  }
+};
+</script>
+<style scoped>
+</style>

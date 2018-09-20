@@ -1,0 +1,276 @@
+<template>
+    <div class="wrap" id="bb">
+        <Form ref="formValidate" :model="formValidate" :rules="ruleValidate" label-position="right" :label-width="100">
+            <Row>
+                <Col :xs="24" :lg="12">
+                <FormItem label="工单号" prop="workorder">
+                    <Input disabled v-model="formValidate.workorder"></Input>
+                </FormItem>
+                </Col>
+                <Col :xs="24" :lg="12">
+                <FormItem label="名称" prop="Remark">
+                    <Input  v-model="formValidate.Remark"></Input>
+                </FormItem>
+                </Col>
+            </Row>
+            <Row>
+                <Col :xs="24" :lg="12">
+                <FormItem label="站点" prop="siteUuid">
+                    <Select v-model="formValidate.siteUuid">
+                        <Option v-for="(item,index) in siteList" :value="item.uuid" :key="index">{{ item.siteName }}</Option>
+                    </Select>
+                </FormItem>
+                </Col>
+                <Col :xs="24" :lg="12">
+                <FormItem label="状态" prop="isEnable">
+                    <RadioGroup v-model="formValidate.isEnable">
+                        <Radio :label="0">启用</Radio>
+                        <Radio :label="1">禁用</Radio>
+                    </RadioGroup>
+                </FormItem>
+                </Col>
+
+            </Row>
+            <Row>
+                <Col :xs="24" :lg="12">
+                <FormItem label="分配给" prop="assigned">
+                    <Select v-model="formValidate.assigned" placeholder="请选择">
+                         <Option v-for="(item,index) in receiveList" :value="item.userId" :key="index">{{ item.userName }}</Option>
+                    </Select>
+                </FormItem>
+                </Col>
+                <Col :xs="24" :lg="12">
+                <FormItem label="开始时间">
+                    <Row>
+                        <Col span="12">
+                        <FormItem prop="date">
+                            <DatePicker type="datetime" format="yyyy-MM-dd HH:mm" placeholder="选择日期" v-model="formValidate.date"></DatePicker>
+                        </FormItem>
+                        </Col>
+                    </Row>
+                </FormItem>
+                </Col>
+            </Row>
+            <Row>
+                <FormItem label="任务详请" prop="textarea">
+                    <Input v-model="formValidate.textarea" type="textarea" :autosize="{minRows: 2,maxRows: 5}" placeholder="请输入"></Input>
+                </FormItem>
+            </Row>
+            <Col :xs="24" :lg="12">
+            <FormItem>
+                <Button type="primary"  :disabled="power"  @click="handleSubmit('formValidate')" class="save " style="margin-left: 0px;">保存</Button>
+                <Button type="ghost" @click="handleReset('formValidate')" class="button " style="margin-left: 8px">取消</Button>
+            </FormItem>
+            </Col>
+        </Form>
+    </div>
+</template>
+
+<script>
+import {siteSpinner} from "../../api/index.js"
+export default {
+  data() {
+    return {
+        siteList:[],
+        receiveList:[{userId:1,userName:'zhangsan'}],
+      search: "",
+      showcom: true,
+      ok: false,
+      formValidate: {
+        workorder: "sss",
+        Remark: "临时任务",
+        priority: "",
+        site: "",
+        worktype: "",
+        assigned: "",
+        isEnable: 0,
+        date: "",
+        time: "",
+        textarea: ""
+      },
+      ruleValidate: {
+        workorder: [
+          {
+            required: true,
+            message: "工单号为必填项",
+            trigger: "blur"
+          }
+        ],
+        worktype: [
+          {
+            required: true,
+            message: "工作类型为必填项",
+            trigger: "change"
+          }
+        ],
+        siteUuid: [
+          {
+            required: true,
+            message: "站点状态为必填项",
+            trigger: "change"
+          }
+        ],
+        assigned: [
+          {
+            required: true,
+            message: "分配为必填项",
+            trigger: "change",
+            type: "number"
+          }
+        ],
+        Remark: [
+          {
+            required: true,
+            message: "备注为必填项",
+            trigger: "change"
+          }
+        ],
+        priority: [
+          {
+            required: true,
+            message: "优先级为必填项",
+            trigger: "change"
+          }
+        ],
+        date: [
+          {
+            required: true,
+            message: "日期为必填项",
+            trigger: "change",
+            type: "date"
+          }
+        ],
+        textarea: [
+          {
+            required: true,
+            message: "任务详细为必填项",
+            trigger: "change"
+          }
+        ]
+      },
+      columns4: [
+        {
+          type: "selection",
+          width: 60,
+          align: "center"
+        },
+        {
+          title: "工单号",
+          key: "workorder"
+        },
+        {
+          title: "名称",
+          key: "remark"
+        },
+        {
+          title: "优先级",
+          key: "priority"
+        },
+        {
+          title: "站点",
+          key: "site"
+        },
+        {
+          title: "类型",
+          key: "type"
+        },
+        {
+          title: "分配",
+          key: "assigned"
+        },
+        {
+          title: "创建时间",
+          key: "createdtime"
+        },
+        {
+          title: "状态",
+          key: "status"
+        }
+      ],
+      data1: [
+        {
+          workorder: "WO2220111",
+          remark: "上海游泳馆",
+          priority: "上海游泳馆",
+          checkpointname: "BEJTLS01",
+          site: "BEJTLS01",
+          type: "SOP2001",
+          assigned: "保安001",
+          createdtime: "上海游泳馆",
+          status: "启用"
+        },
+        {
+          workorder: "WO2010111",
+          remark: "上海游泳馆",
+          priority: "上海游泳馆",
+          checkpointname: "BEJTLS01",
+          site: "BEJTLS01",
+          type: "SOP2001",
+          assigned: "保安002",
+          createdtime: "上海游泳馆",
+          status: "启用"
+        },
+        {
+          workorder: "WO2000100",
+          remark: "上海游泳馆",
+          priority: "上海游泳馆",
+          checkpointname: "BEJTLS01",
+          site: "BEJTLS01",
+          type: "SOP2001",
+          assigned: "保安003",
+          createdtime: "上海游泳馆",
+          status: "启用"
+        }
+      ]
+    };
+  },
+  created(){
+      siteSpinner().then(res=>{
+          this.siteList = res.data.data
+      })
+  },
+  computed: {
+    power() {
+      return false
+    }
+  },
+  methods: {
+    handleSelectAll(status) {
+      this.$refs.selection.selectAll(status);
+    },
+    handleSubmit(name) {
+      this.$refs[name].validate(valid => {
+        if (valid) {
+          this.$Message.success("Success!");
+          this.showcom = true;
+        } else {
+          this.$Message.error("Fail!");
+        }
+      });
+    },
+    handleReset(name) {
+      this.showcom = true;
+      //this.$refs[name].resetFields();
+      this.$router.back(-1)
+    },
+    handleAdd() {
+      this.index++;
+      this.formValidate.items.push({
+        value: "",
+        index: this.index,
+        status: 1
+      });
+    },
+    handleRemove(index) {
+      this.formValidate.items[index].status = 0;
+    },
+    aa: function() {
+      this.ok = true;
+      this.showcom = false;
+    }
+  }
+};
+</script>
+<style scoped>
+
+</style>

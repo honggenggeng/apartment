@@ -1,0 +1,25 @@
+﻿版本：iview-admin-1.3.1
+
+使用方式：解压 iview-admin-1.3.1.zip，删掉 src\views\ 文件夹下的内容，将SVN文件覆盖 iview-admin-1.3.1.zip 文件
+目录/文件说明
+build\webpack.dev.config.js                                 -- 去掉主题组件
+build\webpack.prod.config.js                                -- 去掉主题组件/ico/标题
+src\libs\util.js                                            -- 添加axios 配置
+src\router\router.js                                        -- 路由全部指向src\views\aden下
+src\views\aden\business\                                    -- 业务页面
+src\views\aden\system\                                      -- 后台维护页面
+src\views\aden\components\error-page\                       -- iview-admin 源码：文件夹 src\views\error-page 未修改内容
+src\views\aden\components\home\                             -- iview-admin 源码：文件夹 src\views\home 未修改内容
+src\views\aden\components\main\main-components\             -- iview-admin 源码：文件夹 src\views\main-components（删除 shrinkable-menu、theme-switch 两个子文件夹）
+src\views\aden\components\main\main.less                    -- iview-admin 源码：文件 src\views\main.less 未修改内容
+src\views\aden\components\main\Main.vue                     -- iview-admin 源码：文件 src\views\Main.vue （删掉侧栏菜单）
+src\router\login.less                                       -- iview-admin 源码：文件 src\views\login.less 未修改内容
+src\router\login.vue                                        -- iview-admin 源码：文件 src\views\login.vue （修改登录逻辑）
+
+7.12
+
+src\views\aden\components\main\Main.vue			    -- DropdownMenu组件下，添加了‘个人中心’和‘修改密码’ 45行‘修改密
+									码’的name为changePassWord
+							       140行：handleClickUserDropdown方法里添加了‘修改密码’的路由
+
+src\router\router.js					    -- 109行：增加了‘个人中心’和‘修改密码’的路由
