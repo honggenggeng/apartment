@@ -39,7 +39,7 @@
 				<Row>
 					<Col span="12">
 						<FormItem  label="登录名" prop="signInName">
-							<Input type="number" v-model="formValidate.signInName" placeholder="请输入登录名" ></Input>
+							<Input  v-model="formValidate.signInName" placeholder="请输入登录名" ></Input>
 						</FormItem>
 					</Col>
 					<Col span="12">
@@ -70,8 +70,8 @@
                 </Row>
 				<Col span="12">
 					<FormItem>
-						<Button type="primary" @click="handleSubmit('formValidate')" class="save " style="margin-left: 0px;">保存</Button>
-						<Button type="ghost" @click="handleReset('formValidate')" class="button " style="margin-left: 8px">取消</Button>
+						<Button type="primary" @click="handleSubmit('formValidate')" class="save " ref="save" style="margin-left: 0px;">保存</Button>
+						<Button type="ghost" @click="handleReset('formValidate')" class="button " ref="cancel"  style="margin-left: 8px">取消</Button>
 					</FormItem>
 				</Col>
 			</Form>
@@ -84,7 +84,71 @@
 </template>
 
 <script>
+	import {pageUser} from "../../api/index.js"
 	export default {
+		created(){
+			let data={parameter:JSON.stringify({"code":"","data":{"pageSize":"1","pageSize":"10"},"msg":"","serialNumber":""})};
+			pageUser(data).then(function(data){			
+
+				console.log(data);
+				
+			},function(err){
+				console.log(err);
+			})
+			let dataArray=[{
+						id:"001",
+						userName: 'John Brown',
+						userMobile:'13027756852',
+						signInName:'归一',
+						userPass: 123456,
+						roleName:'管理员',
+						starTime: '2018-03-04',
+						userStatus: 'qiyong'
+					},
+					{
+						id:"002",
+						userName: 'John Brown',
+						userMobile:'13027756852',
+						signInName:'归一',
+						userPass: 123456,
+						roleName:'管理员',
+						starTime: '2018-03-04',
+						userStatus: 'qiyong'
+					},{
+						id:"003",
+						userName: 'John Brown',
+						userMobile:'13027756852',
+						signInName:'归一',
+						userPass: 123456,
+						roleName:'管理员',
+						starTime: '2018-03-04',
+						userStatus: 'qiyong'
+					},{
+						id:"004",
+						userName: 'John Brown',
+						userMobile:'13027756852',
+						signInName:'归一',
+						userPass: 123456,
+						roleName:'管理员',
+						starTime: '2018-03-04',
+						userStatus: 'qiyong'
+					}
+				]
+				for(let i=0;i<dataArray.length;i++){
+					let obj={
+						"id":dataArray[i].id,
+						"userName":dataArray[i].userName,
+						"userMobile":dataArray[i].userMobile,
+						"signInName":dataArray[i].signInName,
+						"userPass":dataArray[i].userPass,
+						"roleName":dataArray[i].roleName,
+						"starTime":dataArray[i].starTime,
+						"userStatus":dataArray[i].userStatus=="qiyong"?"已启用":"未启用",
+					}
+					this.tableData1.push(obj);
+				}
+
+		},
 		data() {
 			return {
 				tableData1: this.mockTableData1,
@@ -158,11 +222,9 @@
 						width: 60,
 						align: 'center',
 					},
-
 					{
 						title: '用户名',
 						key: 'userName',
-
 					},
 					{
 						title: '联系方式',
@@ -171,13 +233,11 @@
 					{
 						title: '登录名',
 						key: 'signInName',
-
 					},
 					{
 						title: '密码',
 						key: 'userPass'
 					},
-
 					{
 						title: '角色',
 						key: 'roleName',
@@ -209,7 +269,8 @@
 									},
 									on: {
 										click: () => {
-											this.aa()
+											
+											this.aa(params);
 										}
 									}
 								}, '修改'),
@@ -221,7 +282,7 @@
 									on: {
 										click: () => {
 											this.modal1 = true,
-												this.deletindex = params.index
+											this.deletindex = params.index
 										}
 										/*click: () => {
 
@@ -233,41 +294,7 @@
 						},
 					},
 				],
-				tableData1: [{
-						userName: 'John Brown',
-						userMobile:'13027756852',
-						signInName:'归一',
-						userPass: 12345,
-						roleName:'管理员',
-						starTime: '2018-03-04',
-						userStatus: '已启用'
-					},
-					{
-						userName: 'John Brown',
-						userMobile:'13027756852',
-						signInName:'归一',
-						userPass: 12345,
-						roleName:'管理员',
-						starTime: '2018-03-04',
-						userStatus: '已启用'
-					},{
-						userName: 'John Brown',
-						userMobile:'13027756852',
-						signInName:'归一',
-						userPass: 12345,
-						roleName:'管理员',
-						starTime: '2018-03-04',
-						userStatus: '已启用'
-					},{
-						userName: 'John Brown',
-						userMobile:'13027756852',
-						signInName:'归一',
-						userPass: 12345,
-						roleName:'管理员',
-						starTime: '2018-03-04',
-						userStatus: '已启用'
-					}
-				]
+				tableData1: []
 			}
 		},
 		methods: {
@@ -286,6 +313,17 @@
 				this.$refs[name].validate((valid) => {
 
 					if(valid) {
+						let addObj={
+							userName: this.formValidate.userName,
+							userMobile:this.formValidate.userMobile,
+							signInName:this.formValidate.signInName,
+							userPass: this.formValidate.userPass,
+							roleName:this.formValidate.roleName,
+							starTime:'2018-09-20',
+							userStatus:this.formValidate.userStatus=="qiyong"?"已启用":"未启用",
+						}
+						//后台返回增加成功信息进行下一步或者刷新获取界面数据
+						this.tableData1.push(addObj);
 
 						this.$Message.success('Success!');
 						this.ok = false;
@@ -303,7 +341,26 @@
 				this.$refs[name].resetFields();
 			},
 
-			aa: function() {
+			aa: function(params) {	
+				console.log(params.row);
+				if (params.row==undefined) {
+					this.formValidate.userName="";
+					this.formValidate.userMobile="";
+					this.formValidate.signInName="";
+					this.formValidate.userPass="";
+					this.formValidate.roleName="";
+					this.formValidate.starTime="";
+					this.formValidate.userStatus="";
+				} else {
+					this.formValidate.userName=params.row.userName;
+					this.formValidate.userMobile=params.row.userMobile;
+					this.formValidate.signInName=params.row.signInName;
+					this.formValidate.userPass=params.row.userPass;
+					this.formValidate.roleName=params.row.roleName;
+					this.formValidate.starTime=params.row.starTime;
+					this.formValidate.userStatus=params.row.userStatus=="已启用"?"qiyong":"weiqiyong";
+				}
+							
 				this.ok = true;
 				this.showcom = false;
 			},
@@ -311,10 +368,12 @@
 			changePage() {
 				// The simulated data is changed directly here, and the actual usage scenario should fetch the data from the server
 				this.tableData1 = this.mockTableData1();
-			},
-
+			}
+			
 		}
 	};
+
+
 </script>
 <style scoped>
 	.operation_mode {

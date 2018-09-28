@@ -144,3 +144,6 @@ export const planId= (data) => { return util.ajax.get('/digiops/plan/'+data)}
 export const workOrderAdd= (data) => { return util.ajax.post('/digiops/workOrder/add',data)}
 //工单查询列表
 export const workOrderList= (data) => { return util.ajax.post('/digiops/workOrder/list',data)}
+
+//用户
+export const pageUser= (data) => { return util.ajax.post('/sys/user/pageUser',data)}

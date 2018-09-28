@@ -41,11 +41,8 @@
                             </span>
                         </FormItem>
                       <!--  <Checkbox v-model="isSystemAdmin" style="color:#2d8cf0;">{{$t('login_systemAdmin')}}</Checkbox>
-                        
+                        -->
                       <span @click="handleSubmit" style="display:inline-block;padding:5px 15px;width:auto;height:auto;position:relative;" class="submit">{{$t('login_signin')}}</span>
-                      -->
-                      <!----><span @click="hand" style="display:inline-block;padding:5px 15px;width:auto;height:auto;position:relative;" class="submit">{{$t('login_signin')}}</span>
-                      <Button @click="exec"></Button>
                     </FormItem>
                 </Form>
                 <Modal v-model="modal1" title="提示">
@@ -97,31 +94,6 @@ export default {
     selectRemember: function() {
       this.isRememberPassword = !this.isRememberPassword;
       this.lang = localStorage.lang;
-    },
-    hand(){
-      let self = this
-      this.axios.post('/authentication/form', {
-          "username":"123456789",
-          "password":"123456"
-      },function(data){
-        var tokenType=data.dataPackage.business.data.tokenType
-        var token=data.dataPackage.business.data.token
-        var Authorization=tokenType+' '+token
-        console.log("成功",data)
-        sessionStorage.setItem("Authorization",Authorization)
-      },function(res){
-        console.log("失败",res)
-      })
-    },
-    exec(){
-      let self = this 
-      this.axios.post('/gy-contract/site/rentcontract/getRentContract', {
-          "contract_code":"201809211137418557"
-      },function(data){
-        console.log("成功",data)
-      },function(res){
-        console.log("失败",res)
-      })
     },
     handleSubmit() {
       this.$refs.loginForm.validate(valid => {
@@ -296,11 +268,7 @@ export default {
     } else if (this.lang === "en-US") {
       this.pageLang = "English";
     }
-  },
-  mounted() {
-  },
-  activated() {
-  },
+  }
 };
 </script>
 

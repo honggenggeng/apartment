@@ -24,6 +24,65 @@
 
 <script>
 	export default {
+		created(){
+			//ajax获取数据
+			let dataArray=[
+					{
+						id: '001',
+						storeName:'绿地云寓',
+						userName: 'John Brown',
+						roleName:'管理员',
+						eventType:'角色调整',
+						eventBrief:'增加管理员',
+						signInTime: '2018-03-04',
+						eventDetail:'删除John角色，增加Tom管理员'
+					},
+					{
+						id: '001',
+						storeName:'绿地云寓',
+						userName: 'John Brown',
+						roleName:'管理员',
+						eventType:'角色调整',
+						eventBrief:'增加管理员',
+						signInTime: '2018-03-04',
+						eventDetail:'删除John角色，增加Tom管理员'
+					},
+					{
+						id: '001',
+						storeName:'绿地云寓',
+						userName: 'John Brown',
+						roleName:'管理员',
+						eventType:'角色调整',
+						eventBrief:'增加管理员',
+						signInTime: '2018-03-04',
+						eventDetail:'删除John角色，增加Tom管理员'
+					},
+					{
+						id: '001',
+						storeName:'绿地云寓',
+						userName: 'John Brown',
+						roleName:'管理员',
+						eventType:'角色调整',
+						eventBrief:'增加管理员',
+						signInTime: '2018-03-04',
+						eventDetail:'删除John角色，增加Tom管理员'
+					},
+				]
+				for (var i = 0; i < dataArray.length; i++) {
+					let obj={
+						id: dataArray[i].id,
+						storeName:dataArray[i].storeName,
+						userName: dataArray[i].userName,
+						roleName:dataArray[i].roleName,
+						eventType:dataArray[i].eventType,
+						eventBrief:dataArray[i].eventBrief,
+						signInTime: dataArray[i].signInTime,
+						eventDetail:dataArray[i].eventDetail
+					}
+					this.tableData1.push(obj);					
+				}
+
+		},
 		data() {
 			return {
 //				   event_time           datetime comment '事件生成日期',
@@ -58,7 +117,6 @@
 						title: '事件摘要',
 						key: 'eventBrief',
 					},
-
 					{
 						title: '登陆时间',
 						key: 'signInTime',
@@ -67,50 +125,8 @@
 						title: '事件明细',
 						key: 'eventDetail',
 					},
-
 					],
-				tableData1: [
-					{
-//						id: '001',
-						storeName:'绿地云寓',
-						userName: 'John Brown',
-						roleName:'管理员',
-						eventType:'角色调整',
-						eventBrief:'增加管理员',
-						signInTime: '2018-03-04',
-						eventDetail:'删除John角色，增加Tom管理员'
-					},
-					{
-//						id: '001',
-						storeName:'绿地云寓',
-						userName: 'John Brown',
-						roleName:'管理员',
-						eventType:'角色调整',
-						eventBrief:'增加管理员',
-						signInTime: '2018-03-04',
-						eventDetail:'删除John角色，增加Tom管理员'
-					},
-					{
-//						id: '001',
-						storeName:'绿地云寓',
-						userName: 'John Brown',
-						roleName:'管理员',
-						eventType:'角色调整',
-						eventBrief:'增加管理员',
-						signInTime: '2018-03-04',
-						eventDetail:'删除John角色，增加Tom管理员'
-					},
-					{
-//						id: '001',
-						storeName:'绿地云寓',
-						userName: 'John Brown',
-						roleName:'管理员',
-						eventType:'角色调整',
-						eventBrief:'增加管理员',
-						signInTime: '2018-03-04',
-						eventDetail:'删除John角色，增加Tom管理员'
-					},
-				]
+				tableData1: []
 			}
 		},
 	};

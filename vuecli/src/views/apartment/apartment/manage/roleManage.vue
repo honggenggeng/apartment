@@ -32,7 +32,7 @@
 				<Row>
 					<Col span="12">
 						<FormItem label="描述" prop="roleRemark">
-							<Input v-model="formValidate.describe" type="textarea" :autosize="{minRows: 2,maxRows: 5}" placeholder="Enter something..."></Input>
+							<Input v-model="formValidate.roleRemark" type="textarea" :autosize="{minRows: 2,maxRows: 5}" placeholder="Enter something..."></Input>
 						</FormItem>
 					</Col>
 				</Row>
@@ -53,6 +53,39 @@
 
 <script>
 	export default {
+		created(){
+			//ajax请求获取数据进行渲染列表
+			let dataArray=[{
+						id:'001',
+						roleName: 'John Brown',
+						roleRemark: '现已登陆'
+					},
+					{
+						id:'002',
+						roleName: 'Jim Green',
+						roleRemark: '现已登陆'
+					},
+					{
+						id:'003',
+						roleName: 'Joe Black',
+						roleRemark: '现已登陆'
+					},
+					{
+						id:'004',
+						roleName: 'Jon Snow',
+						roleRemark: '现已登陆'
+					}
+				]
+			for (let i=0; i <dataArray.length; i++) {
+				let obj={
+					"id":dataArray[i].id,
+					"roleName":dataArray[i].roleName,
+					"roleRemark":dataArray[i].roleRemark
+				}
+				this.tableData1.push(obj);
+			}
+
+		},
 		data() {
 			return {
 				tableData1: this.mockTableData1,
@@ -61,6 +94,7 @@
 				modal1: false,
 				deletindex: '',
 				formValidate: {
+					id:'',
 					roleName: '',
 					roleRemark: '',
 
@@ -108,7 +142,7 @@
 									},
 									on: {
 										click: () => {
-											this.aa()
+											this.aa(params)
 										}
 									}
 								}, '修改'),
@@ -132,23 +166,7 @@
 						}
 					}
 				],
-				tableData1: [{
-						roleName: 'John Brown',
-						roleRemark: '现已登陆'
-					},
-					{
-						roleName: 'Jim Green',
-						roleRemark: '现已登陆'
-					},
-					{
-						roleName: 'Joe Black',
-						roleRemark: '现已登陆'
-					},
-					{
-						roleName: 'Jon Snow',
-						roleRemark: '现已登陆'
-					}
-				]
+				tableData1: []
 			}
 		},
 		methods: {
@@ -166,6 +184,13 @@
 
 				this.$refs[name].validate((valid) => {
 					if(valid) {
+
+
+						let addObj={
+							"roleName":this.formValidate.roleName,
+							"roleRemark":this.formValidate.roleRemark
+						}
+						this.tableData1.push(addObj)
 						this.$Message.success('Success!');
 						this.ok = false;
 						this.add = false;
@@ -180,8 +205,16 @@
 				this.showcom = true;
 				this.ok = false;
 				this.$refs[name].resetFields();
-			},
-			aa: function() {
+			},			
+			aa: function(params) {				
+				if (params.row==undefined) {
+					this.formValidate.roleName="";
+					this.formValidate.roleRemark="";
+				} else {
+					this.formValidate.roleName=params.row.roleName;
+					this.formValidate.roleRemark=params.row.roleRemark;
+				}				
+				
 				this.ok = true;
 				this.showcom = false;
 			},
