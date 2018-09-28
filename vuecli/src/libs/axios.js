@@ -25,6 +25,7 @@ var instance =axios.create({
     // params: {},  //无论请求为何种类型，在params中的属性都会以key=value的格式在urlzhong拼接
     transformRequest: [function (data) {
         // data.age = 30;  //发送之前增加的属性
+        console.log("data:",data)
         return queryString.stringify(data)
     }],
     //transformResponse` 在传递给 then/catch 前，允许修改响应数据
