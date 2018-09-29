@@ -350,7 +350,7 @@ export default {
                 }
              
             },function(res){
-                
+                console.log("版本测试案例")
                 console.log("失败",res)
             })
         },
