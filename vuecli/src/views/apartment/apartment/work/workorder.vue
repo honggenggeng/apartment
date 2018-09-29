@@ -349,8 +349,7 @@ export default {
                     alert("失败");
                 }
              
-            },function(res){
-                console.log("版本测试案例2200000220000220000")
+            },function(res){                
                 console.log("失败",res)
             })
         },
