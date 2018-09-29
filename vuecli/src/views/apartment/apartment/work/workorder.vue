@@ -326,8 +326,7 @@ export default {
                 "pageSize":val.pageSize
             },function(data){
                 console.log(data);
-                if (data.code=="000000") {
-                    
+                if (data.code=="000000") {                    
                     me.total=data.data.count;
                     me.current=data.data.pageNo;
                     for (var i = 0; i < data.data.data.length; i++) {
@@ -351,6 +350,7 @@ export default {
                 }
              
             },function(res){
+                console.log("版本测试案例22220000220000")
                 console.log("失败",res)
             })
         },
