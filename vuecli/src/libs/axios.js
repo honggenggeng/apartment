@@ -26,7 +26,6 @@ var instance =axios.create({
     transformRequest: [function (data) {
         // data.age = 30;  //发送之前增加的属性
         console.log("data:",data)
-        console.log("还不对吗？")
         return queryString.stringify(data)
     }],
     //transformResponse` 在传递给 then/catch 前，允许修改响应数据
